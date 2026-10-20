@@ -27,6 +27,8 @@ sudo .venv/bin/python 01_pendulum/00_play.py
 
 - **[Frozen Lake](00_frozen_lake/)**
   - [Value Iteration](00_frozen_lake/01_value_iteration.ipynb)
+  - [Monte Carlo Control](00_frozen_lake/02_monte_carlo_control.ipynb)
+  - [TD Control or SARSA](00_frozen_lake/03_TD_control_or_SARSA.ipynb)
 - **[Pendulum](01_pendulum/)**
   - [Play it yourself](01_pendulum/00_play.py)
   - [Value Iteration](01_pendulum/01_value_iteration.ipynb)
