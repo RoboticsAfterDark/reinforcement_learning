@@ -29,10 +29,12 @@ sudo .venv/bin/python 01_pendulum/00_play.py
   - [Value Iteration](00_frozen_lake/01_value_iteration.ipynb)
   - [Monte Carlo Control](00_frozen_lake/02_monte_carlo_control.ipynb)
   - [TD Control or SARSA](00_frozen_lake/03_TD_control_or_SARSA.ipynb)
+  - [Q-Learning](00_frozen_lake/04_Q_learning.ipynb)
 - **[Pendulum](01_pendulum/)**
   - [Play it yourself](01_pendulum/00_play.py)
   - [Value Iteration](01_pendulum/01_value_iteration.ipynb)
-  - [Monte Carlo Control](01_pendulum/03_monte_carlo_control.ipynb)
-  - [TD Control or SARSA](01_pendulum/04_TD_control_or_SARSA.ipynb)
+  - [Monte Carlo Control](01_pendulum/02_monte_carlo_control.ipynb)
+  - [TD Control or SARSA](01_pendulum/03_TD_control_or_SARSA.ipynb)
+  - [Q-Learning](01_pendulum/04_Q_learning.ipynb)
 - **[Cart Pole](02_cart_pole/)**
   - [Play it yourself](02_cart_pole/00_play.py)
