@@ -32,5 +32,7 @@ sudo .venv/bin/python 01_pendulum/00_play.py
 - **[Pendulum](01_pendulum/)**
   - [Play it yourself](01_pendulum/00_play.py)
   - [Value Iteration](01_pendulum/01_value_iteration.ipynb)
+  - [Monte Carlo Control](01_pendulum/03_monte_carlo_control.ipynb)
+  - [TD Control or SARSA](01_pendulum/04_TD_control_or_SARSA.ipynb)
 - **[Cart Pole](02_cart_pole/)**
   - [Play it yourself](02_cart_pole/00_play.py)
