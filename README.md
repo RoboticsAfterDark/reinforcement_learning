@@ -23,3 +23,4 @@ sudo .venv/bin/python 01_pendulum/00_play.py
   - [Value Iteration](00_frozen_lake/01_value_iteration.ipynb)
 - **[Pendulum](01_pendulum/)**
   - [Play it yourself](01_pendulum/00_play.py)
+  - [Value Iteration](01_pendulum/01_value_iteration.ipynb)
