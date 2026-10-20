@@ -2,6 +2,12 @@
 
 Let's learn RL!
 
+We will be following these lectures:
+
+- [David Silver (DeepMind)](https://youtube.com/playlist?list=PLqYmG7hTraZDM-OYHWgPebj2MfCFzFObQ)
+- [Sergey Levine (UC Berkeley)](https://youtube.com/playlist?list=PLKq1TCpsv3Y4)
+- [Russ Tedrake (MIT)](https://youtube.com/playlist?list=PLkx8KyIQkMfU5szP43GlE_S1QGSPQfL9s)
+
 ## Installation
 
 This project uses [uv](https://docs.astral.sh/uv/) to manage Python and its dependencies.
