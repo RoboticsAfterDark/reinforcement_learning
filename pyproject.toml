@@ -9,4 +9,5 @@ dependencies = [
     "keyboard>=0.13.5",
     "matplotlib>=3.11.2",
     "numpy>=2.5.4",
+    "torch>=2.14.1",
 ]
