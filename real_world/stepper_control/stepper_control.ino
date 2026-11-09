@@ -2,8 +2,8 @@
 #define stepPin 4
 
 // I have confirmed this, still download datasheet
-// R100 resister = 0.1 ohm, I_max = 1.0A 
-// so Vref = I_max * (8 * 0.1) = 0.64V (between tiny nob and gnd)
+// R100 resister = 0.1 ohm, I_max = 0.8A 
+// so Vref = I_max * (8 * r) = 0.64V (between tiny nob and gnd)
 const int STEPS_PER_REV = 200;
 
 void setup() {
