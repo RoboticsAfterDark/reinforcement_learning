@@ -2,8 +2,9 @@
 // G: go, start sending the state every control tick (TODO control tick?)
 // X: stop, stop the cart and stop sending the state
 // Z: zero the encoder, do it when the pole hangs still at the bottom
+// H: home, find the limit switch then move the cart to the center (x = 0)
 // A <action>: action, 0 push left, 1 push right
-// one A = one env step, changes the cart speed by one push action
+// one A = one env step, changes the cart speed by one push action only works after homing
 
 #include <AccelStepper.h>
 
@@ -32,6 +33,20 @@ long prev_cart_steps = 0;
 // need to specify dir and step pins
 AccelStepper stepper(AccelStepper::DRIVER, stepPin, dirPin);
 
+// track
+#define TRACK_LENGTH_M 0.40       // meters
+#define SOFT_LIMIT_MARGIN_M 0.03  // soft limits stop the cart before it reaches the ends
+
+// homing
+#define HOMING_SPEED 200  // slow
+// if the switch is not found after this many steps something is wrong
+const long HOMING_MAX_STEPS = 1.2 * TRACK_LENGTH_M / METERS_PER_STEP;
+long homing_start_steps = 0;
+
+// x = 0 is the center of the track so the switch is at -TRACK_LENGTH_M / 2
+const long HOME_STEPS = -(TRACK_LENGTH_M / 2) / METERS_PER_STEP;
+const long SOFT_LIMIT_STEPS = (TRACK_LENGTH_M / 2 - SOFT_LIMIT_MARGIN_M) / METERS_PER_STEP;
+
 // control loop timing 50 Hz
 #define CONTROL_PERIOD_US 20000UL
 unsigned long tick_scheduled_us = 0;  // planned tick time, +20 ms every tick, keeps 50 Hz
@@ -42,6 +57,17 @@ unsigned long prev_tick_us = 0;       // actual time of last tick, for dt
 // 2 m/s^2 * 0.02 s / (0.0002 m/step) = 200 steps/s per action
 #define CART_ACCEL_MPS2 2.0
 const float SPEED_CHANGE_PER_ACTION = CART_ACCEL_MPS2 * (CONTROL_PERIOD_US * 1e-6) / METERS_PER_STEP;
+
+// what the cart is doing right now
+// NOT_HOMED: position unknown, actions are not allowed
+// HOMING: moving slowly towards the limit switch
+// MOVING_TO_CENTER: switch found, moving to x = 0
+// READY: position known, actions are allowed, soft limits are on
+enum Mode { NOT_HOMED, HOMING, MOVING_TO_CENTER, READY };
+Mode mode = NOT_HOMED;
+
+// --- limit switch ---
+#define limitPin 6
 
 // --- serial ---
 #define BAUD_RATE 500000
@@ -62,6 +88,9 @@ void setup() {
   stepper.setMaxSpeed(MAX_STEPS_PER_S);
   stepper.setSpeed(0);
 
+  // use external 5k pullup resistor
+  pinMode(limitPin, INPUT);
+
   Serial.begin(BAUD_RATE);
   Serial.println("READY");
 
@@ -76,6 +105,10 @@ void loop() {
 
   // check for new cmds
   readCommand();
+
+  // safety and homing run every loop.
+  checkSafety();
+  updateHoming();
 
   // run controlTick once every control period
   unsigned long now_us = micros();
@@ -128,6 +161,12 @@ void applyAction(int action) {
     speed -= SPEED_CHANGE_PER_ACTION;
   }
 
+  // at a soft limit don't speed up further out
+  long cart_steps = stepper.currentPosition();
+  if ((cart_steps >= SOFT_LIMIT_STEPS && speed > 0) || (cart_steps <= -SOFT_LIMIT_STEPS && speed < 0)) {
+    speed = 0;
+  }
+
   // AccelStepper limits it to MAX_STEPS_PER_S
   stepper.setSpeed(speed);
 }
@@ -139,7 +178,7 @@ void controlTick(unsigned long now_us) {
 
   float dt = (now_us - prev_tick_us) * 1e-6;
 
-  // x = 0 where the cart was at power on
+  // x = 0 at the center of the track after homing
   float x = cart_steps * METERS_PER_STEP;
   float x_dot = (cart_steps - prev_cart_steps) * METERS_PER_STEP / dt;
 
@@ -154,6 +193,69 @@ void controlTick(unsigned long now_us) {
 
   if (sending_state) {
     sendState(now_us, x, x_dot, theta, theta_dot);
+  }
+}
+
+// --- limit switch and homing ---
+bool limitPressed() {
+  return digitalRead(limitPin) == LOW;
+}
+
+void startHoming() {
+  if (limitPressed()) {
+    Serial.println("ERR limit switch already pressed, move the cart away by hand or check wiring");
+    return;
+  }
+
+  homing_start_steps = stepper.currentPosition();
+  stepper.setSpeed(-HOMING_SPEED);
+  mode = HOMING;
+  Serial.println("OK H");
+}
+
+void updateHoming() {
+  if (mode == HOMING) {
+    if (limitPressed()) {
+      // found the switch
+      stepper.setCurrentPosition(HOME_STEPS);
+      prev_cart_steps = HOME_STEPS;
+
+      stepper.setSpeed(HOMING_SPEED);
+      mode = MOVING_TO_CENTER;
+    }
+    else if (homing_start_steps - stepper.currentPosition() > HOMING_MAX_STEPS) {
+      stopCart();
+      mode = NOT_HOMED;
+      Serial.println("ERR limit switch not found");
+    }
+  }
+  else if (mode == MOVING_TO_CENTER) {
+    if (stepper.currentPosition() >= 0) {
+      stopCart();
+      mode = READY;
+      Serial.println("HOMED");
+    }
+  }
+}
+
+// safety check
+void checkSafety() {
+  // switch hit while moving towards it after homing means steps were skipped
+  // so the position is wrong
+  if (mode != HOMING && stepper.speed() < 0 && limitPressed()) {
+    stopCart();
+    mode = NOT_HOMED;
+    Serial.println("ERR limit switch hit, position lost, home again with H");
+  }
+
+  // soft limits, only stop if moving further out, moving back in is allowed
+  if (mode == READY) {
+    long cart_steps = stepper.currentPosition();
+    if ((cart_steps >= SOFT_LIMIT_STEPS && stepper.speed() > 0) ||
+        (cart_steps <= -SOFT_LIMIT_STEPS && stepper.speed() < 0)) {
+      stopCart();
+      Serial.println("LIMIT soft limit reached, cart stopped");
+    }
   }
 }
 
@@ -203,6 +305,12 @@ void handleCommand(char *cmd) {
     case 'X':
       stopCart();
       sending_state = false;
+      if (mode == HOMING) {
+        mode = NOT_HOMED;
+      }
+      else if (mode == MOVING_TO_CENTER) {
+        mode = NOT_HOMED;
+      }
       Serial.println("OK X");
       break;
 
@@ -211,8 +319,16 @@ void handleCommand(char *cmd) {
       Serial.println("OK Z");
       break;
 
+    case 'H':
+      startHoming();
+      break;
+
     case 'A':
       {
+        if (mode != READY) {
+          Serial.println("ERR not ready, send H first");
+          break;
+        }
         int action = atoi(cmd + 1);  // atoi: string to int
         if (action != 0 && action != 1) {
           Serial.print("ERR action must be 0 or 1: ");
