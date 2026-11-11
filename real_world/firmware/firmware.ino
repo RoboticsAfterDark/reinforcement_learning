@@ -36,11 +36,11 @@ long prev_cart_steps = 0;
 AccelStepper stepper(AccelStepper::DRIVER, stepPin, dirPin);
 
 // track
-#define TRACK_LENGTH_M 0.40       // meters
+#define TRACK_LENGTH_M 0.60       // meters
 #define SOFT_LIMIT_MARGIN_M 0.03  // soft limits stop the cart before it reaches the ends
 
 // homing
-#define HOMING_SPEED 200  // slow
+#define HOMING_SPEED 500
 // if the switch is not found after this many steps something is wrong
 const long HOMING_MAX_STEPS = 1.2 * TRACK_LENGTH_M / METERS_PER_STEP;
 long homing_start_steps = 0;
@@ -56,8 +56,8 @@ unsigned long prev_tick_us = 0;       // actual time of last tick, for dt
 
 // action
 // one action changes the speed by CART_ACCEL_MPS2 for one control period
-// 2 m/s^2 * 0.02 s / (0.0002 m/step) = 200 steps/s per action
-#define CART_ACCEL_MPS2 2.0
+// 5 m/s^2 * 0.02 s / (0.0002 m/step) = 500 steps/s per action
+#define CART_ACCEL_MPS2 5.0
 const float SPEED_CHANGE_PER_ACTION = CART_ACCEL_MPS2 * (CONTROL_PERIOD_US * 1e-6) / METERS_PER_STEP;
 
 // what the cart is doing right now
