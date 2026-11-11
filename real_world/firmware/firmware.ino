@@ -1,5 +1,5 @@
 // cmds from PC:
-// G: go, start sending the state every control tick (TODO control tick?)
+// G: go, start sending the state every control tick
 // X: stop, stop the cart and stop sending the state
 // Z: zero the encoder, do it when the pole hangs still at the bottom
 // H: home, find the limit switch then move the cart to the center (x = 0)
@@ -27,7 +27,7 @@ long prev_encoder_count = 0;
 #define STEPS_PER_REV 200    // full step mode so 200 steps per rev
 #define METERS_PER_REV 0.04  // belt with 20 tooth pulley so 40 mm per rev
 const float METERS_PER_STEP = METERS_PER_REV / STEPS_PER_REV;
-// TODO(abhi): adjest if needed
+// TODO(abhi): adjust if needed
 #define MAX_STEPS_PER_S 1000
 long prev_cart_steps = 0;
 
@@ -188,7 +188,6 @@ void controlTick(unsigned long now_us) {
   float x = cart_steps * METERS_PER_STEP;
   float x_dot = (cart_steps - prev_cart_steps) * METERS_PER_STEP / dt;
 
-  // check the cart pole in gym init angle I think its upright zero
   float theta = count * RAD_PER_COUNT;
   // theta_dot = change in angle / change in time
   float theta_dot = (count - prev_encoder_count) * RAD_PER_COUNT / dt;
