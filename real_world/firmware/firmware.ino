@@ -6,6 +6,7 @@
 // A <action>: action, 0 push left, 1 push right
 // one A = one env step, changes the cart speed by one push action only works after homing
 // W <ms>: watchdog, stop the cart if no cmd comes for <ms>, W 0 = off (off at power on)
+// ?: status, print mode, limit switch, cart position and watchdog
 
 #include <AccelStepper.h>
 
@@ -286,6 +287,28 @@ void sendState(unsigned long now_us, float x, float x_dot, float theta, float th
   Serial.println(theta_dot, 4);
 }
 
+const char* modeName(Mode m) {
+  switch (m) {
+    case NOT_HOMED:        return "NOT_HOMED";
+    case HOMING:           return "HOMING";
+    case MOVING_TO_CENTER: return "MOVING_TO_CENTER";
+    case READY:            return "READY";
+  }
+  return "UNKNOWN";
+}
+
+// STATUS mode=<mode> limit=<pressed/open> cart_steps=<steps> watchdog_ms=<ms>
+void printStatus() {
+  Serial.print("STATUS mode=");
+  Serial.print(modeName(mode));
+  Serial.print(" limit=");
+  Serial.print(limitPressed() ? "pressed" : "open");
+  Serial.print(" cart_steps=");
+  Serial.print(stepper.currentPosition());
+  Serial.print(" watchdog_ms=");
+  Serial.println(watchdog_ms);
+}
+
 // collect characters until a newline, then handle the cmd
 void readCommand() {
   while (Serial.available() > 0) {
@@ -358,6 +381,10 @@ void handleCommand(char *cmd) {
       watchdog_ms = atol(cmd + 1);  // atol: string to long
       Serial.print("OK W ");
       Serial.println(watchdog_ms);
+      break;
+
+    case '?':
+      printStatus();
       break;
 
     default:
