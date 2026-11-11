@@ -5,6 +5,7 @@
 // H: home, find the limit switch then move the cart to the center (x = 0)
 // A <action>: action, 0 push left, 1 push right
 // one A = one env step, changes the cart speed by one push action only works after homing
+// W <ms>: watchdog, stop the cart if no cmd comes for <ms>, W 0 = off (off at power on)
 
 #include <AccelStepper.h>
 
@@ -65,6 +66,10 @@ const float SPEED_CHANGE_PER_ACTION = CART_ACCEL_MPS2 * (CONTROL_PERIOD_US * 1e-
 // READY: position known, actions are allowed, soft limits are on
 enum Mode { NOT_HOMED, HOMING, MOVING_TO_CENTER, READY };
 Mode mode = NOT_HOMED;
+
+// --- watchdog ---
+unsigned long watchdog_ms = 0;      // 0 = off
+unsigned long last_command_ms = 0;  // time of the last cmd from PC
 
 // --- limit switch ---
 #define limitPin 6
@@ -257,6 +262,13 @@ void checkSafety() {
       Serial.println("LIMIT soft limit reached, cart stopped");
     }
   }
+
+  // watchdog, PC stopped sending cmds so stop the cart
+  if (mode == READY && watchdog_ms > 0 && stepper.speed() != 0 &&
+      millis() - last_command_ms > watchdog_ms) {
+    stopCart();
+    Serial.println("WATCHDOG no command, cart stopped");
+  }
 }
 
 // --- serial communication ---
@@ -295,6 +307,9 @@ void handleCommand(char *cmd) {
   if (cmd[0] == '\0') {
     return;  // empty line
   }
+
+  // any cmd means the PC is still alive
+  last_command_ms = millis();
 
   switch (cmd[0]) {
     case 'G':
@@ -338,6 +353,12 @@ void handleCommand(char *cmd) {
         applyAction(action);
         break;
       }
+
+    case 'W':
+      watchdog_ms = atol(cmd + 1);  // atol: string to long
+      Serial.print("OK W ");
+      Serial.println(watchdog_ms);
+      break;
 
     default:
       Serial.print("ERR unknown command: ");
