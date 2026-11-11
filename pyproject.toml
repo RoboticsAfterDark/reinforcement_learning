@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "gymnasium[toy-text]>=1.4.0",
+    "ipykernel>=7.4.0",
     "keyboard>=0.13.5",
     "matplotlib>=3.11.2",
     "numpy>=2.5.4",
