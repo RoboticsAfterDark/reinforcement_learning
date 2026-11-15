@@ -14,6 +14,7 @@ from cart_pole_serial import CartPoleSerial, PORT
 
 # episode ends when the cart is too far from center
 # firmware soft limits are at +-0.27 m, end the episode before them
+# TODO: this need to update as firmware limit is new
 X_THRESHOLD = 0.25
 MAX_EPISODE_STEPS = 500 # truncated after this many steps, 10 s at 50 Hz
 
