@@ -28,7 +28,7 @@ long prev_encoder_count = 0;
 #define METERS_PER_REV 0.04  // belt with 20 tooth pulley so 40 mm per rev
 const float METERS_PER_STEP = METERS_PER_REV / STEPS_PER_REV;
 // TODO(abhi): adjust if needed
-#define MAX_STEPS_PER_S 1000
+#define MAX_STEPS_PER_S 1500  // 1500 * 0.0002 m = 0.3 m/s top speed
 long prev_cart_steps = 0;
 
 // AccelStepper::DRIVER because we are using stepper driver
@@ -36,11 +36,11 @@ long prev_cart_steps = 0;
 AccelStepper stepper(AccelStepper::DRIVER, stepPin, dirPin);
 
 // track
-#define TRACK_LENGTH_M 0.60       // meters
+#define TRACK_LENGTH_M 0.65       // meters
 #define SOFT_LIMIT_MARGIN_M 0.03  // soft limits stop the cart before it reaches the ends
 
 // homing
-#define HOMING_SPEED 500
+#define HOMING_SPEED 1000
 // if the switch is not found after this many steps something is wrong
 const long HOMING_MAX_STEPS = 1.2 * TRACK_LENGTH_M / METERS_PER_STEP;
 long homing_start_steps = 0;
@@ -56,8 +56,8 @@ unsigned long prev_tick_us = 0;       // actual time of last tick, for dt
 
 // action
 // one action changes the speed by CART_ACCEL_MPS2 for one control period
-// 5 m/s^2 * 0.02 s / (0.0002 m/step) = 500 steps/s per action
-#define CART_ACCEL_MPS2 5.0
+// 7.5 m/s^2 * 0.02 s / (0.0002 m/step) = 750 steps/s (0.15 m/s) per action
+#define CART_ACCEL_MPS2 7.50
 const float SPEED_CHANGE_PER_ACTION = CART_ACCEL_MPS2 * (CONTROL_PERIOD_US * 1e-6) / METERS_PER_STEP;
 
 // what the cart is doing right now
@@ -273,16 +273,21 @@ void checkSafety() {
 
 // --- serial communication ---
 // S <time_ms> <x> <x_dot> <theta> <theta_dot>
+// printing a float takes a few hundred us, so step in between, else steps comes late.
 void sendState(unsigned long now_us, float x, float x_dot, float theta, float theta_dot) {
   Serial.print("S ");
   Serial.print(now_us / 1000);
   Serial.print(' ');
+  stepper.runSpeed();
   Serial.print(x, 4);
   Serial.print(' ');
+  stepper.runSpeed();
   Serial.print(x_dot, 4);
   Serial.print(' ');
+  stepper.runSpeed();
   Serial.print(theta, 4);
   Serial.print(' ');
+  stepper.runSpeed();
   Serial.println(theta_dot, 4);
 }
 
