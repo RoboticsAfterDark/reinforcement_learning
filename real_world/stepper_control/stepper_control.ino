@@ -4,6 +4,7 @@
 // I have confirmed this, still download datasheet
 // R100 resister = 0.1 ohm, I_max = 0.8A 
 // so Vref = I_max * (8 * r) = 0.64V (between tiny nob and gnd)
+// Ender3 docs says Vref(x, y, z) = 0.58V
 const int STEPS_PER_REV = 200;
 
 void setup() {
