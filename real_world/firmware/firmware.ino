@@ -18,6 +18,8 @@
 const float RAD_PER_COUNT = 2.0 * PI / ENCODER_COUNTS_PER_REV;
 volatile long encoder_count = 0;
 long prev_encoder_count = 0;
+#define MAX_THETA_DOT 25.0  // rad/s, faster is spinning, stop the cart
+float last_theta_dot = 0;
 
 // --- stepper ---
 #define dirPin 5
@@ -191,6 +193,7 @@ void controlTick(unsigned long now_us) {
   float theta = count * RAD_PER_COUNT;
   // theta_dot = change in angle / change in time
   float theta_dot = (count - prev_encoder_count) * RAD_PER_COUNT / dt;
+  last_theta_dot = theta_dot;
 
   prev_encoder_count = count;
   prev_cart_steps = cart_steps;
@@ -268,6 +271,12 @@ void checkSafety() {
       millis() - last_command_ms > watchdog_ms) {
     stopCart();
     Serial.println("WATCHDOG no command, cart stopped");
+  }
+
+  // spin, stop the cart to protect the hardware
+  if (mode == READY && stepper.speed() != 0 && fabs(last_theta_dot) > MAX_THETA_DOT) {
+    stopCart();
+    Serial.println("SPIN pole too fast, cart stopped");
   }
 }
 

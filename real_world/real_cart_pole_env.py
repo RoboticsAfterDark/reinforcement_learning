@@ -18,6 +18,9 @@ from cart_pole_serial import CartPoleSerial, PORT
 X_THRESHOLD = 0.25
 MAX_EPISODE_STEPS = 500 # truncated after this many steps, 10 s at 50 Hz
 
+SPIN_SPEED_SCALE = 8.0 # rad/s, faster pole = less reward, so spinning pays nothing
+MAX_THETA_DOT = 20.0 # rad/s, faster is spinning, end the episode to protect the hardware
+
 # episode starts when the pole hangs still for STILL_TICKS
 STILL_SPEED = 1.0 # rad/s, one encoder count per tick is 0.87 rad/s
 STILL_TICKS = 50 # 1 s at 50 Hz
@@ -29,6 +32,12 @@ WATCHDOG_MS = 100
 def wrap_angle(angle):
     # wrap to [-pi, pi)
     return (angle + np.pi) % (2 * np.pi) - np.pi
+
+
+def compute_reward(theta, theta_dot):
+    # how upright the pole is: upright = 1, sideways = 0.5, hanging = 0
+    # times how slow it is: still = 1, 8 rad/s = 0.37, 16 rad/s = 0.02, so spinning pays nothing
+    return float((1 + np.cos(theta)) / 2 * np.exp(-(theta_dot / SPIN_SPEED_SCALE) ** 2))
 
 
 class RealCartPoleEnv(gym.Env):
@@ -98,11 +107,14 @@ class RealCartPoleEnv(gym.Env):
         # any event (LIMIT, WATCHDOG, ERR) also ends the episode
         messages = self.cart_pole.pop_messages()
 
+        # spinning too fast also ends the episode
+        if abs(theta_dot) > MAX_THETA_DOT:
+            messages.append(f'SPIN theta_dot {theta_dot:.1f} rad/s')
+
         terminated = bool(abs(x) > X_THRESHOLD or len(messages) > 0)
         truncated = self.num_steps >= MAX_EPISODE_STEPS
 
-        # how upright the pole is: upright = 1, sideways = 0.5, hanging = 0
-        reward = float((1 + np.cos(theta)) / 2)
+        reward = compute_reward(theta, theta_dot)
 
         # stop the cart right away, don't wait for the next reset
         if terminated or truncated:
