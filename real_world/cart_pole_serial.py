@@ -7,7 +7,7 @@ import numpy as np
 import serial
 
 PORT = '/dev/ttyACM0'
-BAUD_RATE = 500000 # same as firmware
+BAUD_RATE = 500000
 
 
 class CartPoleSerial:
@@ -86,7 +86,7 @@ class CartPoleSerial:
         self.wait_for('OK X', timeout_s=1)
 
     def send_action(self, action):
-        # 0 push left, 1 push right, no answer, the next state is the answer
+        # 0 push left, 1 push right, 2 no push, no answer, the next state is the answer
         self.send(f'A {int(action)}')
 
     # --- state ---

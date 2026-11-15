@@ -1,7 +1,8 @@
 """Gym env for the real cart pole.
 
-Same reset(), step(), action space and observation [x, x_dot, theta, theta_dot]
+Same reset(), step() and observation [x, x_dot, theta, theta_dot]
 as gym.make("CartPole-v1"), or at least tried to make it same!
+One extra action: 2 no push.
 
 Swing up: every episode starts with the pole hanging still at the bottom,
 the agent has to swing it up and keep it upright.
@@ -33,7 +34,7 @@ class RealCartPoleEnv(gym.Env):
     def __init__(self, port=PORT):
         super().__init__()
 
-        self.action_space = spaces.Discrete(2) # 0 push left, 1 push right
+        self.action_space = spaces.Discrete(3) # 0 push left, 1 push right, 2 no push
         # X_THRESHOLD multiply by 2 because, last observation might fall outside if not use this
         # theta is wrapped so it is always in [-pi, pi)
         high = np.array([X_THRESHOLD * 2, np.inf, np.pi, np.inf], dtype=np.float32)

@@ -3,7 +3,7 @@
 // X: stop, stop the cart and stop sending the state
 // Z: zero the encoder, do it when the pole hangs still at the bottom
 // H: home, find the limit switch then move the cart to the center (x = 0)
-// A <action>: action, 0 push left, 1 push right
+// A <action>: action, 0 push left, 1 push right, 2 no push
 // one A = one env step, changes the cart speed by one push action only works after homing
 // W <ms>: watchdog, stop the cart if no cmd comes for <ms>, W 0 = off (off at power on)
 // ?: status, print mode, limit switch, cart position and watchdog
@@ -158,12 +158,12 @@ void stopCart() {
   stepper.setSpeed(0);
 }
 
-// 0 push left, 1 push right
+// 0 push left, 1 push right, 2 no push
 void applyAction(int action) {
   float speed = stepper.speed();
   if (action == 1) {
     speed += SPEED_CHANGE_PER_ACTION;
-  } else {
+  } else if (action == 0) {
     speed -= SPEED_CHANGE_PER_ACTION;
   }
 
@@ -367,8 +367,8 @@ void handleCommand(char *cmd) {
           break;
         }
         int action = atoi(cmd + 1);  // atoi: string to int
-        if (action != 0 && action != 1) {
-          Serial.print("ERR action must be 0 or 1: ");
+        if (action < 0 || action > 2) {
+          Serial.print("ERR action must be 0, 1 or 2: ");
           Serial.println(cmd);
           break;
         }
