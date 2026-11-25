@@ -3,6 +3,7 @@
 | Experiment | Date | Commit |
 |---|---|---|
 | [experiment001](#experiment001) | 2026-11-23 | [`b214432`](https://github.com/abhismirai42/reinforcement_learning/commit/b214432fc912ab377c2dd5ef3b18633a6a940876) |
+| [experiment002](#experiment002) | 2026-11-24 | [`7f46374`](https://github.com/abhismirai42/reinforcement_learning/commit/7f46374aa421d85fc223bd18f310a3e1eea90ac3) |
 
 ---
 
@@ -29,3 +30,27 @@
 **Questions & next**
 - Same algorithm family and env, so is the crashing (O3) caused by one of the differences in Setup? They all change at once here (e.g. 1 vs 2 critics, hard vs soft target update, fixed vs automatic alpha, lr 1e-3 vs 3e-4), so this experiment cannot tell which.
 - Next: add them to ours one at a time
+
+---
+
+## experiment002
+
+**Question:** Does a soft target update (instead of the hard copy every 500 steps) stop our SAC from crashing (001.O3)?
+
+**Setup**
+- Same as experiment001, one change: target update `target = tau * critic + (1 - tau) * target` after every gradient step, tau 0.005. Before: hard copy every 500 steps.
+
+**Procedure:** Ran the 3 runs from scratch, ~20 min per run. Plotted the 50 episode moving average of every run next to SB3 from experiment001.
+
+![our SAC with soft target update vs SB3 SAC](experiments/experiment002/our_soft_target_vs_sb3_sac.png)
+
+**Observations**
+- **O1** Episode 1250 to 2500 mean: 452, 454, 442 (experiment001 ours: 216, 397, 356; SB3: 480, 498, 470).
+- **O2** Until episode ~1100 it still crashes, down to ~25 to 100, like experiment001.
+- **O3** After episode ~1300 it stays between ~400 and ~490 in all 3 runs, one short dip to ~170 in run 3.
+- **O4** It levels off around 450, SB3 around 480 to 500.
+
+**Questions & next**
+- The crashing stops in the second half (O1, O3), not in the first ~1100 episodes (O2).
+- Why does it still crash early on and then settle?
+- Next: 2 critics, on top of the soft target update.
