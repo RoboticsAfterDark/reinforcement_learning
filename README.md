@@ -41,3 +41,11 @@ sudo .venv/bin/python 01_pendulum/00_play.py
 - **[Cart Pole](02_cart_pole/)**
   - [Play it yourself](02_cart_pole/00_play.py)
   - [Deep Q-Learning](02_cart_pole/05_DeepQ_learning.ipynb)
+  - [Soft Actor-Critic](02_cart_pole/06_Soft_Actor_Critic.ipynb)
+- **[Real World Cart Pole](real_world/)**
+  - [Play it yourself](real_world/00_play.py)
+  - [Soft Actor-Critic](real_world/06_Soft_Actor_Critic.ipynb)
+  - [Gym env](real_world/real_cart_pole_env.py)
+  - [Serial driver](real_world/cart_pole_serial.py)
+  - [Arduino firmware](real_world/firmware/firmware.ino)
+  - [Wiring](real_world/connection.png)
