@@ -5,6 +5,7 @@
 | [experiment001](#experiment001) | 2026-11-23 | [`b214432`](https://github.com/abhismirai42/reinforcement_learning/commit/b214432fc912ab377c2dd5ef3b18633a6a940876) |
 | [experiment002](#experiment002) | 2026-11-24 | [`7f46374`](https://github.com/abhismirai42/reinforcement_learning/commit/7f46374aa421d85fc223bd18f310a3e1eea90ac3) |
 | [experiment003](#experiment003) | 2026-11-27 | [`08348a4`](https://github.com/abhismirai42/reinforcement_learning/commit/08348a4b2f875ded371d664b80feff1d001a22eb) |
+| [experiment004](#experiment004) | 2026-11-27 | [`4c32b7c`](https://github.com/abhismirai42/reinforcement_learning/commit/4c32b7c0f2a9563ac10232e3a139971118d2b004) |
 
 ---
 
@@ -79,3 +80,26 @@
 - With the soft target update and 2 critics ours is now about as good as SB3 (O1, O4) and more steady in the second half (O3).
 - The early crashes (O2) are still there, SB3 has a few too. Is it the fixed alpha, or the lr 1e-3?
 - Next: lets move to real env? or create real like sim env and checked on it?
+
+---
+
+## experiment004
+
+**Question:** Does the experiment003 SAC also learn and keep the swing up on a sim like the real cart, compared to SB3 SAC?
+
+**Setup**
+- Same as experiment003, but on `02_cart_pole/sim_cart_pole_env.py`: gym physics with the real env's 3 actions, reward and hanging start, ends at the track edge or spin > 20 rad/s, 500 steps max. Like on the real cart it trains after each whole episode, replay 1 000 000 (`02_cart_pole/06_Soft_Actor_Critic_env2.ipynb`).
+- SB3 SAC on the same sim.
+
+**Procedure:** 3 runs each from scratch, ours ~40 min per run, SB3 ~140 min per run. Plotted the 50 episode moving average of every run.
+
+![our SAC vs SB3 SAC on the sim swing up](experiments/experiment004/our_sac_vs_sb3_sac.png)
+
+**Observations**
+- **O1** Both learn the swing up, a 50 episode average of ~420 by episode ~170 to 410 (about 430 is the most per episode here).
+- **O2** SB3 keeps it until the end in all 3 runs.
+- **O3** Ours collapses to ~0 near the end (episode ~1780 to 2250) and does not come back, the final policies drive the cart off the track.
+
+**Questions & next**
+- Ours learns the swing up but does not keep it, SB3 does. Is it the fixed alpha, or training after the whole episode?
+- Next: automatic alpha.
