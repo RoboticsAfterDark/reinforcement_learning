@@ -4,6 +4,7 @@
 |---|---|---|
 | [experiment001](#experiment001) | 2026-11-23 | [`b214432`](https://github.com/abhismirai42/reinforcement_learning/commit/b214432fc912ab377c2dd5ef3b18633a6a940876) |
 | [experiment002](#experiment002) | 2026-11-24 | [`7f46374`](https://github.com/abhismirai42/reinforcement_learning/commit/7f46374aa421d85fc223bd18f310a3e1eea90ac3) |
+| [experiment003](#experiment003) | 2026-11-27 | [`08348a4`](https://github.com/abhismirai42/reinforcement_learning/commit/08348a4b2f875ded371d664b80feff1d001a22eb) |
 
 ---
 
@@ -54,3 +55,27 @@
 - The crashing stops in the second half (O1, O3), not in the first ~1100 episodes (O2).
 - Why does it still crash early on and then settle?
 - Next: 2 critics, on top of the soft target update.
+
+---
+
+## experiment003
+
+**Question:** Do 2 critics (min of both) on top of the soft target update remove the early crashes (002.O2) and raise the level (002.O4)?
+
+**Setup**
+- Same as experiment002, one change: 2 critics and 2 target critics. The TD target uses the min of the 2 target critics, the actor loss uses the min of the 2 critics, each critic has its own MSE loss (summed, one optimizer), both targets get the soft update.
+
+**Procedure:** Ran the 3 runs from scratch, ~30 min per run. Plotted the 50 episode moving average of every run next to SB3 from experiment001.
+
+![our SAC with soft target update and 2 critics vs SB3 SAC](experiments/experiment003/our_soft_target_2_critics_vs_sb3_sac.png)
+
+**Observations**
+- **O1** Episode 1250 to 2500 mean: 470, 483, 473 (experiment002: 452, 454, 442; SB3: 480, 498, 470).
+- **O2** It still crashes early on, but less deep and it stops earlier: lowest ~85, ~180, ~120 before episode ~1000 (experiment002: down to ~25 to 100 until episode ~1100).
+- **O3** After episode ~1000 it stays above ~400 in all 3 runs. SB3 in the same part has dips to ~230 to ~300.
+- **O4** It levels off around 470 to 485, SB3 around 480 to 500.
+
+**Questions & next**
+- With the soft target update and 2 critics ours is now about as good as SB3 (O1, O4) and more steady in the second half (O3).
+- The early crashes (O2) are still there, SB3 has a few too. Is it the fixed alpha, or the lr 1e-3?
+- Next: lets move to real env? or create real like sim env and checked on it?
